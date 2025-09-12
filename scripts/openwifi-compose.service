@@ -1,0 +1,30 @@
+[Unit]
+Description=OpenWiFi stack (Docker Compose)
+Requires=docker.service
+After=docker.service
+ConditionPathExists=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose/docker-compose.yml
+Wants=network-pre.target
+After=network-pre.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86
+
+ExecStartPre=systemctl stop NetworkManager 
+ExecStartPre=/usr/bin/systemctl stop systemd-resolved
+
+ExecStart=/usr/bin/docker-compose up -d
+ExecStartPost=/usr/bin/bash -lc 'echo "nameserver 127.0.0.1" | tee /etc/resolv.conf >/dev/null'
+
+
+ExecStop=/usr/bin/docker-compose down -v 
+
+ExecStopPost=/usr/bin/bash -lc 'echo "nameserver 127.0.0.53" | tee /etc/resolv.conf >/dev/null'
+ExecStopPost=systemctl start NetworkManager 
+ExecStopPost=/usr/bin/systemctl start systemd-resolved
+
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  openwifi1:
+    image: aditya25022/openwifi-x86_networkmanager:latest    # or your local image
+    container_name: openwifi1
+    network_mode: host                         # same network namespace as host
+    privileged: true                           # can manage ip/nftables/routes
+    #restart: always
+    volumes:
+      - /home/utkarsh/Documents/dc627965307d_aws_certs/cert.pem:/etc/ucentral/cert.pem:ro
+      - /home/utkarsh/Documents/dc627965307d_aws_certs/key.pem:/etc/ucentral/key.pem:ro
+      - /home/utkarsh/Documents/dc627965307d_aws_certs/cas.pem:/etc/ucentral/cas.pem:ro
+      - /home/utkarsh/Documents/dc627965307d_aws_certs/gateway.json:/etc/ucentral/gateway.json:ro
+      - /usr/local/bin/openwifi-health.sh:/usr/local/bin/openwifi-health.sh:ro
+    dns:
+      - 127.0.0.1
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/local/bin/openwifi-health.sh"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
