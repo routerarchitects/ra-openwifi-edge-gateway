@@ -147,6 +147,7 @@ Edit `docker-compose/docker-compose.yml` and update the Docker Hub username:
 vim docker-compose/docker-compose.yml
 # Replace the image line with your Docker Hub username:
 # image: <your-dockerhub-username>/openwifi-x86:latest
+# Replace the name of username in /home/<username>/WORKSPACE/OPENWIFI-X86/certs/ with username of your hostmachine.
 ```
 
 (Optional) Verify `gateway.json` example format:

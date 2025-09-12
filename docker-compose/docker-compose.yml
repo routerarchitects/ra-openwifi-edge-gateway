@@ -2,16 +2,16 @@ version: "3.9"
 
 services:
   openwifi1:
-    image: <your-dockerhub-username>/openwifi-x86_networkmanager:latest    # or your local image
+    image: aditya25022/openwifi-x86_networkmanager:latest    # or your local image
     container_name: openwifi1
     network_mode: host                         # same network namespace as host
     privileged: true                           # can manage ip/nftables/routes
     #restart: always
     volumes:
-      - ~/WORKSPACE/OPENWIFI-X86/cert.pem:/etc/ucentral/cert.pem:ro
-      - ~/WORKSPACE/OPENWIFI-X86/key.pem:/etc/ucentral/key.pem:ro
-      - ~/WORKSPACE/OPENWIFI-X86/cas.pem:/etc/ucentral/cas.pem:ro
-      - ~/WORKSPACE/OPENWIFI-X86/gateway.json:/etc/ucentral/gateway.json:ro
+      - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/cert.pem:/etc/ucentral/cert.pem:ro
+      - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/key.pem:/etc/ucentral/key.pem:ro
+      - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/cas.pem:/etc/ucentral/cas.pem:ro
+      - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/gateway.json:/etc/ucentral/gateway.json:ro
       - /usr/local/bin/openwifi-health.sh:/usr/local/bin/openwifi-health.sh:ro
     dns:
       - 127.0.0.1
