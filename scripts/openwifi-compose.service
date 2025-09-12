@@ -8,7 +8,7 @@ After=network-pre.target
 
 [Service]
 Type=oneshot
-WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86
+WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose
 
 ExecStartPre=systemctl stop NetworkManager 
 ExecStartPre=/usr/bin/systemctl stop systemd-resolved

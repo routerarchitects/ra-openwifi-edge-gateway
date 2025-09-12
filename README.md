@@ -175,7 +175,7 @@ Update these lines (replace `<your-username>`):
 
 ```
 ConditionPathExists=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose/docker-compose.yml
-WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86
+WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose
 ```
 
 > Note: If your system only has the Docker **Compose v2 plugin** (`docker compose`), edit the Exec lines in the service to use `docker compose` instead of `docker-compose`.
