@@ -8,7 +8,8 @@ sudo apt update
 sudo apt install -y \
   build-essential libncurses5-dev gawk git libssl-dev gettext zlib1g-dev \
   swig unzip time rsync python3 python3-setuptools python3-yaml \
-  docker.io docker-compose-plugin tree curl
+  docker.io docker-compose tree curl
+
 sudo usermod -aG docker $USER
 # Re-login (or reboot) so your user can run docker without sudo
 ```
@@ -147,7 +148,7 @@ Edit `docker-compose/docker-compose.yml` and update the Docker Hub username:
 vim docker-compose/docker-compose.yml
 # Replace the image line with your Docker Hub username:
 # image: <your-dockerhub-username>/openwifi-x86:latest
-# Replace the name of username in /home/<username>/WORKSPACE/OPENWIFI-X86/certs/ with username of your hostmachine.
+# Replace the name of username in /home/<username>/WORKSPACE/OPENWIFI-X86/ with username of your hostmachine.
 ```
 
 (Optional) Verify `gateway.json` example format:
@@ -172,7 +173,7 @@ sudo cp scripts/openwifi-compose.service /etc/systemd/system/openwifi-compose.se
 sudo vim /etc/systemd/system/openwifi-compose.service
 ```
 
-Update these lines (replace `<your-username>`):
+Update these lines (replace `<your-username>` with your ubuntu's username and `<dockerhub-username>` with your docker-username):
 
 ```
 ConditionPathExists=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose/docker-compose.yml
@@ -185,7 +186,7 @@ Reload and enable the service:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable openwifi-compose.service
+sudo systemctl enable openwifi-compose.service #enable for starting at boot
 sudo systemctl start openwifi-compose.service
 systemctl status openwifi-compose.service
 ```

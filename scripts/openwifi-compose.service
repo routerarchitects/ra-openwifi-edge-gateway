@@ -10,7 +10,8 @@ After=network-pre.target
 Type=oneshot
 WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose
 
-ExecStartPre=systemctl stop NetworkManager 
+ExecStartPre=docker pull <dockerhub-username>/openwifi-x86_networkmanager:latest
+ExecStartPre=systemctl stop systemd-networkd 
 ExecStartPre=/usr/bin/systemctl stop systemd-resolved
 
 ExecStart=/usr/bin/docker-compose up -d
@@ -20,7 +21,7 @@ ExecStartPost=/usr/bin/bash -lc 'echo "nameserver 127.0.0.1" | tee /etc/resolv.c
 ExecStop=/usr/bin/docker-compose down -v 
 
 ExecStopPost=/usr/bin/bash -lc 'echo "nameserver 127.0.0.53" | tee /etc/resolv.conf >/dev/null'
-ExecStopPost=systemctl start NetworkManager 
+ExecStopPost=systemctl start systemd-networkd 
 ExecStopPost=/usr/bin/systemctl start systemd-resolved
 
 RemainAfterExit=yes
