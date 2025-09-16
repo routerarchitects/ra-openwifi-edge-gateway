@@ -1,22 +1,17 @@
-# OpenWiFi (x86) — Build → Push to Docker Hub → Run with systemd
+# OpenWiFi (x86) — Build Openwifi image for edge gateway router → Push to Docker Hub → Run with systemd
 ---
 
-##  Prerequisites
+##  Prerequisites to Build the Edge Gateway Router Image on Ubuntu (Tested on 22.04) 
 
 ```bash
 sudo apt update
-sudo apt install -y \
-  build-essential libncurses5-dev gawk git libssl-dev gettext zlib1g-dev \
-  swig unzip time rsync python3 python3-setuptools python3-yaml \
-  docker.io docker-compose tree curl
+sudo apt install build-essential libncurses5-dev gawk git libssl-dev gettext zlib1g-dev swig unzip time rsync python3 python3-setuptools python3-yaml
 
-sudo usermod -aG docker $USER
-# Re-login (or reboot) so your user can run docker without sudo
 ```
 
 ---
 
-##  Build OpenWiFi x86 rootfs and create Docker image
+## Building OpenWiFi x86 RootFS for Edge Gateway Router, Creating Docker Image, and Uploading to Docker Hub
 
 ```bash
 mkdir -p ~/OPENWIFI_WLANAP && cd ~/OPENWIFI_WLANAP
@@ -36,38 +31,64 @@ Build the image:
 ./build.sh x64_vm
 ```
 
-## Clone this repository
-
-```bash
-mkdir -p ~/WORKSPACE && cd ~/WORKSPACE
-git clone <this-repo-url> OPENWIFI-X86
-```
-
-##  Build the image
+###  Build the docker image using Dockerfile 
 After build completes, create a Docker image from the produced rootfs:
 
 ```bash
-cd ~/OPENWIFI_WLANAP/ra-openwifi-wlan-ap/openwrt/build_dir/target-x86_64_musl/root-x86/
-cp ~/WORKSPACE/OPENWIFI-X86/Dockerfile .
+cd openwrt/build_dir/target-x86_64_musl/root-x86/
+```
+Create a Dockerfile
+ 
+```bash
+vi Dockerfile
+```
+Save the following data inside Dockerfile
+
+```bash
+FROM scratch
+ADD . /
+CMD ["/sbin/init"]
+```
+Build the docker image
+
+```bash
 sudo docker build --network host -t openwifi-x86:latest .
 ```
 
 ---
 
-##  Push image to public Docker Hub
+###  Push image to Docker Hub
 
 ```bash
 docker login
-# If you built with a different local name, retag:
-# docker tag openwifi-x86:latest <your-dockerhub-username>/openwifi-x86:latest
+
+#please change the <your-dockerhub-username> with your dockerhub username
+
+docker tag openwifi-x86:latest <your-dockerhub-username>/openwifi-x86:latest
+
+#example: docker tag openwifi-x86 routerarchitect123/openwifi-x86:latest
+
 docker push <your-dockerhub-username>/openwifi-x86:latest
+
+#example: docker push routerarchitect123/openwifi-x86:latest
+
 ```
 
 Verify on [https://hub.docker.com/](https://hub.docker.com/) that your repository is **public**.
 
 ---
 
-## Prepare host: persistent NIC names
+## Steps to Prepare the Host Machine for Running the Edge Gateway Docker Container
+
+### Prerequisite: Install Docker & Docker Compose
+
+```bash
+# Update package index and install from Ubuntu repositories
+sudo apt update && sudo apt install -y docker.io docker-compose
+```
+**Important:** If above does not work then please follow the official Docker installation guide here: https://docs.docker.com/engine/install/ubuntu/
+
+### Prepare host: persistent NIC names
 
 Create two `.link` files with your **physical NIC MAC addresses**:
 
@@ -108,7 +129,7 @@ sudo vi /etc/systemd/network/20-ether-pci.link
 
 ---
 
-Create Docker daemon config to avoid iptables conflicts:
+###  Create Docker daemon config to avoid iptables conflicts:
 
 ```bash
 sudo vim /etc/docker/daemon.json
@@ -130,11 +151,20 @@ sudo reboot
 
 ---
 
-##Copy your certificate and gateway files into the `~/WORKSPACE/OPENWIFI-X86/certs/` directory:
+## Steps to Generate Certificates and Replace Default Files
 
-**Important:** certificate COMMON NAME should be same as mac address of eth0 interface.
+### 1. Generate New Certificates
+The process of generating certificates is identical to the method used for the Banana Pi Router.  
+
+⚠️ **Important:**  
+When creating the certificate, ensure that the **Common Name (CN)** is set to the **MAC address of the `eth0` interface** on the Edge Gateway host machine.
+
+
+### 2. Replace the Default Certificate and Files
 
 ```bash
+mkdir -p ~/WORKSPACE && cd ~/WORKSPACE
+git clone https://github.com/routerarchitects/ra-openwifi-edge-gateway.git OPENWIFI-X86
 cd ~/WORKSPACE/OPENWIFI-X86
 cp ~/Path_to_certificate/cert.pem certs/
 cp ~/Path_to_certificate/key.pem certs/
@@ -142,24 +172,34 @@ cp ~/Path_to_certificate/cas.pem certs/
 cp ~/Path_to_certificate/gateway.json certs/
 ```
 
-Edit `docker-compose/docker-compose.yml` and update the Docker Hub username:
-
-```bash
-vim docker-compose/docker-compose.yml
-# Replace the image line with your Docker Hub username:
-# image: <your-dockerhub-username>/openwifi-x86:latest
-# Replace the name of username in /home/<username>/WORKSPACE/OPENWIFI-X86/ with username of your hostmachine.
-```
-
-(Optional) Verify `gateway.json` example format:
+Verify `gateway.json` example format:
 
 ```json
 {"server":"openwifi1.routerarchitects.com","port":15002}
 ```
+⚠️ **Note:**  
+The configuration must include the **OpenWiFi Controller’s hostname and port number** in order to connect.
+
+Edit `docker-compose/docker-compose.yml` and update the Docker Hub username:
+
+```bash
+vim docker-compose/docker-compose.yml
+
+# Update the image line with your Docker Hub username:
+# image: <your-dockerhub-username>/openwifi-x86:latest
+# Example:
+# image: routerarchitect123/openwifi-x86:latest
+
+# Also update the path by replacing <username> with your host machine's username:
+# /home/<username>/WORKSPACE/OPENWIFI-X86/
+# Example:
+# /home/ubuntu/WORKSPACE/OPENWIFI-X86/
+
+```
 
 ---
 
-## Install systemd service (Step 5)
+## Install systemd service on Edge Gateway Router
 
 Copy the systemd service into place:
 
@@ -176,8 +216,17 @@ sudo vim /etc/systemd/system/openwifi-compose.service
 Update these lines (replace `<your-username>` with your ubuntu's username and `<dockerhub-username>` with your docker-username):
 
 ```
+# Replace <your-username> with your Ubuntu username
+# Replace <dockerhub-username> with your Docker Hub username
+
 ConditionPathExists=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose/docker-compose.yml
 WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose
+ExecStartPre=docker pull <dockerhub-username>/openwifi-x86_networkmanager:latest
+
+# Example (Ubuntu username: 'ubuntu', Docker Hub username: 'routerarchitect123')
+ConditionPathExists=/home/ubuntu/WORKSPACE/OPENWIFI-X86/docker-compose/docker-compose.yml
+WorkingDirectory=/home/ubuntu/WORKSPACE/OPENWIFI-X86/docker-compose
+ExecStartPre=docker pull routerarchitect123/openwifi-x86_networkmanager:latest
 ```
 
 > Note: If your system only has the Docker **Compose v2 plugin** (`docker compose`), edit the Exec lines in the service to use `docker compose` instead of `docker-compose`.
@@ -210,10 +259,8 @@ OPENWIFI-X86/
 │   └── gateway.json
 ├── docker-compose/
 │   └── docker-compose.yml
-├── Dockerfile
 ├── README.md
 └── scripts/
     ├── openwifi-compose.service
     └── openwifi-health.sh
 ```
-

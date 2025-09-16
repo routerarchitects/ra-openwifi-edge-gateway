@@ -7,7 +7,10 @@ services:
     network_mode: host                         # same network namespace as host
     privileged: true                           # can manage ip/nftables/routes
     #restart: always
+    tty: true
+    stdin_open: true
     volumes:
+      - /lib/modules:/lib/modules:ro
       - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/cert.pem:/etc/ucentral/cert.pem:ro
       - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/key.pem:/etc/ucentral/key.pem:ro
       - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/cas.pem:/etc/ucentral/cas.pem:ro
