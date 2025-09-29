@@ -25,6 +25,21 @@ Checkout the required branch:
 git checkout release/v3.1.0
 ```
 
+Make some adjustments to the ucentral-tools before starting the image build:
+
+```bash
+vi feeds/ucentral/ucentral-tools/Makefile
+```
+Update the variables with the following values:
+
+```bash
+PKG_SOURCE_URL=https://github.com/routerarchitects/ucentral-tools.git
+PKG_MIRROR_HASH:=6b69ac0378d879e1a78606bc837e8f8a3d6ba8a6c53817acbcce987a639ad04d
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_DATE:=2025-09-29
+PKG_SOURCE_VERSION:=17bd7d5574a0f62b972c40898710f04509b7cf64
+```
+
 Build the image:
 
 ```bash
