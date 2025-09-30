@@ -195,7 +195,7 @@ Verify `gateway.json` example format:
 ⚠️ **Note:**  
 The configuration must include the **OpenWiFi Controller’s hostname and port number** in order to connect.
 
-Edit `docker-compose/docker-compose.yml` and update the Docker Hub username:
+Edit `docker-compose/docker-compose.yml` and update the Docker Hub username inside the docker-compose.yml file:
 
 ```bash
 vim docker-compose/docker-compose.yml
