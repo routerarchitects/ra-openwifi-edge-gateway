@@ -236,12 +236,12 @@ Update these lines (replace `<your-username>` with your ubuntu's username and `<
 
 ConditionPathExists=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose/docker-compose.yml
 WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose
-ExecStartPre=docker pull <dockerhub-username>/openwifi-x86_networkmanager:latest
+ExecStartPre=docker pull <dockerhub-username>/openwifi-x86:latest
 
 # Example (Ubuntu username: 'ubuntu', Docker Hub username: 'routerarchitect123')
 ConditionPathExists=/home/ubuntu/WORKSPACE/OPENWIFI-X86/docker-compose/docker-compose.yml
 WorkingDirectory=/home/ubuntu/WORKSPACE/OPENWIFI-X86/docker-compose
-ExecStartPre=docker pull routerarchitect123/openwifi-x86_networkmanager:latest
+ExecStartPre=docker pull routerarchitect123/openwifi-x86:latest 
 ```
 
 > Note: If your system only has the Docker **Compose v2 plugin** (`docker compose`), edit the Exec lines in the service to use `docker compose` instead of `docker-compose`.
