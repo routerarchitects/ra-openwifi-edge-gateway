@@ -10,7 +10,7 @@ After=network-pre.target
 Type=oneshot
 WorkingDirectory=/home/<your-username>/WORKSPACE/OPENWIFI-X86/docker-compose
 
-ExecStartPre=docker pull <dockerhub-username>/openwifi-x86_networkmanager:latest
+ExecStartPre=docker pull <dockerhub-username>/openwifi-x86:latest
 ExecStartPre=systemctl stop systemd-networkd 
 ExecStartPre=/usr/bin/systemctl stop systemd-resolved
 

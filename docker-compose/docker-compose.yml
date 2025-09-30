@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   openwifi1:
-    image: <dockerhub-username>/openwifi-x86_networkmanager:latest    # or your local image
+    image: <dockerhub-username>/openwifi-x86:latest    # or your local image
     container_name: openwifi1
     network_mode: host                         # same network namespace as host
     privileged: true                           # can manage ip/nftables/routes
