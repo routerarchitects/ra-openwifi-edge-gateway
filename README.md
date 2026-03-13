@@ -79,6 +79,10 @@ Verify on [https://hub.docker.com/](https://hub.docker.com/) that your repositor
 
 ## Steps to Prepare the Host Machine for Running the Edge Gateway Docker Container
 
+### Prerequisites for Host Environment
+
+- Ubuntu 24.04.4 LTS (Noble Numbat)
+
 ### Prerequisite: Install Docker & Docker Compose
 
 ```bash
@@ -112,6 +116,7 @@ EOF
 ```
 
 **Important:** Replace `<USB-ETHERNET-MAC>` and `<ONBOARD-ETHERNET-MAC>` with the actual MAC addresses of your physical interfaces.  
+**Note:** After the OpenWrt container starts on the host, `eth0` will be attached to the LAN bridge and `eth1` will be attached to the WAN bridge.
 
 Find the MAC addresses using:
 
@@ -127,6 +132,20 @@ sudo vi /etc/systemd/network/20-ether-pci.link
 ```
 
 ---
+
+### Preserve host routing policy rules and routes
+
+```bash
+sudo mkdir -p /etc/systemd/networkd.conf.d
+
+sudo tee /etc/systemd/networkd.conf.d/90-openwifi.conf >/dev/null <<'EOF'
+[Network]
+ManageForeignRoutingPolicyRules=no
+ManageForeignRoutes=no
+EOF
+
+sudo systemctl restart systemd-networkd
+```
 
 ###  Create Docker daemon config to avoid iptables conflicts:
 
@@ -150,16 +169,22 @@ sudo reboot
 
 ---
 
-## Steps to Generate Certificates and Replace Default Files
+## Steps to Generate Certificates and Configure Default Files
 
 ### 1. Generate New Certificates
-The process of generating certificates is identical to the method used for the Banana Pi Router.  
+Generate new client and server certificates using the Mango Cloud URL.
+```
+https://github.com/routerarchitects/mango_cloud_cert_generation
+```
 
 ⚠️ **Important:**  
 When creating the certificate, ensure that the **Common Name (CN)** is set to the **MAC address of the `eth0` interface** on the Edge Gateway host machine.
 
 
 ### 2. Replace the Default Certificate and Files
+If you built the image from a branch before `release/4.1.0`, the certificate filenames remain `key.pem`, `cert.pem`, and `cas.pem`.
+
+For `release/4.1.0` and later branches, update `docker-compose/docker-compose.yml`, including the volume mappings, and copy the certificates using the filenames `operational.pem`, `operational.ca`, and `key.pem`.
 
 ```bash
 mkdir -p ~/WORKSPACE && cd ~/WORKSPACE
@@ -179,7 +204,17 @@ Verify `gateway.json` example format:
 ⚠️ **Note:**  
 The configuration must include the **OpenWiFi Controller’s hostname and port number** in order to connect.
 
+### 3. Configure docker-compose.yml
+
 Edit `docker-compose/docker-compose.yml` and update the Docker Hub username inside the docker-compose.yml file:
+
+For branches later than `release/4.0.0`, update the volume mappings as shown below:
+
+```
+      - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/operational.pem:/etc/ucentral/operational.pem:ro
+      - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/key.pem:/etc/ucentral/key.pem:ro
+      - /home/<username>/WORKSPACE/OPENWIFI-X86/certs/operational.ca:/etc/ucentral/operational.ca:ro
+```
 
 ```bash
 vim docker-compose/docker-compose.yml
@@ -212,6 +247,17 @@ sudo cp scripts/openwifi-compose.service /etc/systemd/system/openwifi-compose.se
 sudo vim /etc/systemd/system/openwifi-compose.service
 ```
 
+**Note for Ubuntu Desktop users:**
+Ubuntu Desktop typically uses **NetworkManager** instead of `systemd-networkd` to manage host networking.
+If your host uses NetworkManager, replace the `systemd-networkd` stop/start lines in `openwifi-compose.service` with `NetworkManager.service`.
+
+Example for NetworkManager-based hosts:
+
+```ini
+ExecStartPre=/usr/bin/systemctl stop NetworkManager.service
+ExecStopPost=/usr/bin/systemctl start NetworkManager.service
+```
+
 Update these lines (replace `<your-username>` with your ubuntu's username and `<dockerhub-username>` with your docker-username):
 
 ```
@@ -234,8 +280,17 @@ Reload and enable the service:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable openwifi-compose.service #enable for starting at boot
-sudo systemctl start openwifi-compose.service
+sudo systemctl enable openwifi-compose.service # enable for starting at boot
+systemctl start openwifi-compose.service
+
+# Important: For first-time setup, reboot once after enabling the service.
+# This helps ensure host networking and the OpenWrt container initialize cleanly.
+sudo reboot
+```
+
+After the system comes back up:
+
+```bash
 systemctl status openwifi-compose.service
 ```
 
